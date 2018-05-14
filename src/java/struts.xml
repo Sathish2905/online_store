@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+    <package name="default" namespace="/" extends="struts-default">
+        <interceptors>
+            <interceptor name="authentication" class="com.sathish.interceptor.AuthenticationInterceptor"></interceptor>
+            <interceptor name="authorization" class="com.sathish.interceptor.AuthorizationInterceptor"></interceptor>
+            <interceptor-stack name="authStack">
+                <interceptor-ref name="authentication"></interceptor-ref>
+                <interceptor-ref name="defaultStack"></interceptor-ref>
+            </interceptor-stack>
+            <interceptor-stack name="roleStack">
+                <interceptor-ref name="authentication"></interceptor-ref>
+                <interceptor-ref name="defaultStack"></interceptor-ref>
+                <interceptor-ref name="authorization">
+                    <param name="allowedRoles">admin</param>
+                </interceptor-ref>
+            </interceptor-stack>
+        </interceptors>
+
+        <global-results>
+            <result name="login">/WEB-INF/front-store/login.jsp</result>
+            <result name="invalidAdminAccess" type="redirect">/store.action</result>
+        </global-results>
+        
+        <action name="login" class="com.sathish.action.LoginAction" method="page">
+            <result name="success">/WEB-INF/front-store/login.jsp</result>
+        </action>
+        
+        <action name="register" class="com.sathish.action.StoreAction" method="register">
+            <result name="success">/WEB-INF/front-store/register.jsp</result>
+        </action>
+               
+        <action name="addUser" class="com.sathish.action.StoreAction" method="addUser">
+            <result name="success" type="redirect">/store.action</result>
+            <result name="input">/WEB-INF/front-store/register.jsp</result>
+        </action>
+        
+        <action name="store" class="com.sathish.action.StoreAction" method="pagingProduct">
+            <result name="success">/WEB-INF/front-store/store.jsp</result>
+        </action>
+        <action name="search" class="com.sathish.action.StoreAction" method="search">
+            <result name="success">/WEB-INF/front-store/result.jsp</result>
+        </action>
+        <action name="header" class="com.sathish.action.StoreAction" method="header">
+            <result name="success">/template/header.jsp</result>
+        </action>
+        <action name="sidebar" class="com.sathish.action.StoreAction" method="sidebar">
+            <result name="success">/template/sidebar.jsp</result>
+        </action>
+        
+        <action name="product" class="com.sathish.action.ProductAction">
+            <result name="success">/WEB-INF/front-store/product.jsp</result>
+        </action>
+        
+        <action name="review" class="com.sathish.action.ProductAction" method="review">
+            <result name="success" type="redirect">/product.action?id=${product.id}</result>
+        </action>
+        
+        <action name="category" class="com.sathish.action.CategoryAction" method="categoryPaging">
+            <result name="success">/WEB-INF/front-store/category.jsp</result>
+        </action>
+        
+        <action name="buy" class="com.sathish.action.StoreAction" method="buy">
+            <result name="success" type="redirect">cart</result> 
+        </action>
+        
+        <action name="cart" class="com.sathish.action.StoreAction" method="cart">
+            <result name="success">/WEB-INF/front-store/view-cart.jsp</result> 
+        </action>
+        
+        <action name="clear_cart" class="com.sathish.action.StoreAction" method="clear_cart">
+            <result name="success">/WEB-INF/front-store/view-cart.jsp</result>
+        </action>
+        
+        <action name="logout" class="com.sathish.action.StoreAction" method="logout">
+            <result name="success" type="redirect">/store.action</result>            
+        </action>
+        
+        <action name="checkout" class="com.sathish.action.StoreAction" method="checkout">
+            <interceptor-ref name="authStack"></interceptor-ref>
+            <result name="success">/WEB-INF/front-store/view-cart.jsp</result>
+            <result name="input">/WEB-INF/front-store/view-cart.jsp</result>
+        </action>
+    </package>
+ 
+    <package name="account" namespace="/account" extends="default">
+        <default-interceptor-ref name="authStack"></default-interceptor-ref>
+       
+        <action name="profile">
+            <result name="success">/WEB-INF/front-store/account/profile.jsp</result>
+        </action>
+       
+        <action name="edit" class="com.sathish.action.UserAction" method="editProfile">
+            <result name="success">/WEB-INF/front-store/account/edit.jsp</result>
+        </action>
+        
+        <action name="update" class="com.sathish.action.UserAction" method="save">
+            <result name="success" type="redirect">/account/profile</result>
+        </action>
+        
+        <action name="password" class="com.sathish.action.UserAction" method="editProfile">
+            <result name="success">/WEB-INF/front-store/account/password.jsp</result>
+        </action>
+        
+        <action name="order" class="com.sathish.action.OrderAction" method="getOrderByUser">
+            <result name="success">/WEB-INF/front-store/account/order/index.jsp</result>
+        </action>
+        
+        <action name="order-detail" class="com.sathish.action.OrderAction" method="getOrderDetailById">
+            <result name="success">/WEB-INF/front-store/account/order/detail.jsp</result>
+        </action>
+        
+        <action name="delete-order" class="com.sathish.action.OrderAction" method="deleteOrderById">
+            <result name="success" type="redirect">/account/order</result>
+        </action>
+    </package>
+ 
+    <package name="admin" namespace="/admin" extends="default">
+        <default-interceptor-ref name="roleStack"></default-interceptor-ref>
+       
+        <action name="index" class="com.sathish.action.AdminAction" method="getLatest">
+            <result name="success">/WEB-INF/admin/index.jsp</result>
+        </action>
+            
+        <action name="login" class="com.sathish.action.LoginAction">
+            <interceptor-ref name="defaultStack"></interceptor-ref>
+            <result name="store" type="redirect">/store.action</result>
+            <result name="admin" type="redirect">/admin/index</result>
+            <result name="input">/WEB-INF/admin/login.jsp</result>
+        </action>
+        
+        <action name="header" class="com.sathish.action.AdminAction" method="header">
+            <result name="success">/template/admin_header.jsp</result>
+        </action>
+        
+        <action name="sidebar" class="com.sathish.action.AdminAction" method="sidebar">
+            <result name="success">/template/admin_sidebar.jsp</result>
+        </action>
+    </package>
+    
+    <package name="category" namespace="/admin/category" extends="admin">
+        <action name="index" class="com.sathish.action.CategoryAction" method="index">
+            <result name="success">/WEB-INF/admin/category/index.jsp</result>
+        </action>
+        
+        <action name="insert" class="com.sathish.action.CategoryAction" method="insert">
+            <result name="success">/WEB-INF/admin/category/forms.jsp</result>
+        </action>
+        
+        <action name="delete" class="com.sathish.action.CategoryAction" method="delete">
+            <result name="success" type="redirect">/admin/category/index</result>
+        </action>
+        
+        <action name="edit" class="com.sathish.action.CategoryAction" method="edit">
+            <result name="success">/WEB-INF/admin/category/forms.jsp</result>
+        </action>
+        
+        <action name="save" class="com.sathish.action.CategoryAction" method="save">
+            <result name="success" type="redirect">/admin/category/index</result>
+            <result name="input">/WEB-INF/admin/category/forms.jsp</result>
+        </action>
+    </package>
+    
+    <package name="product" namespace="/admin/product" extends="admin">
+        <action name="index" class="com.sathish.action.ProductAction" method="index">
+            <result name="success">/WEB-INF/admin/product/index.jsp</result>
+        </action>
+        
+        <action name="insert" class="com.sathish.action.ProductAction" method="insert">
+            <interceptor-ref name="fileUpload">
+                <param name="maximumSize">2097152</param>
+                <param name="allowedTypes">
+                    image/png,image/gif,image/jpeg,image/pjpeg
+                </param>
+            </interceptor-ref>
+            <interceptor-ref name="roleStack"></interceptor-ref>
+            <interceptor-ref name="store">
+                <param name="operationMode">RETRIEVE</param>
+            </interceptor-ref>
+            <result name="success">/WEB-INF/admin/product/forms.jsp</result>
+        </action>
+        
+        <action name="delete" class="com.sathish.action.ProductAction" method="delete">
+            <result name="success" type="redirect">/admin/product/index</result>
+        </action>
+        
+        <action name="edit" class="com.sathish.action.ProductAction" method="edit">
+            <result name="success">/WEB-INF/admin/product/forms.jsp</result>
+        </action>
+        
+        <action name="save" class="com.sathish.action.ProductAction" method="save">
+            <interceptor-ref name="store">
+                <param name="operationMode">STORE</param>
+            </interceptor-ref>
+            <interceptor-ref name="roleStack" />
+            <result name="success" type="redirect">/admin/product/index</result>
+            <result name="input" type="redirect">/admin/product/insert</result>
+        </action>
+    </package>
+    
+    <package name="user" namespace="/admin/user" extends="admin">
+        <action name="index" class="com.sathish.action.UserAction" method="index">
+            <result name="success">/WEB-INF/admin/user/index.jsp</result>
+        </action>
+        
+        <action name="customer" class="com.sathish.action.UserAction" method="indexCustomer">
+            <result name="success">/WEB-INF/admin/user/index.jsp</result>
+        </action>
+        
+        <action name="insert" class="com.sathish.action.UserAction" method="insert">
+            <result name="success">/WEB-INF/admin/user/forms.jsp</result>
+        </action>
+        
+        <action name="delete" class="com.sathish.action.UserAction" method="delete">
+            <result name="success" type="redirect">/admin/user/index</result>
+        </action>
+        
+        <action name="edit" class="com.sathish.action.UserAction" method="edit">
+            <result name="success">/WEB-INF/admin/user/forms.jsp</result>
+        </action>
+        
+        <action name="save" class="com.sathish.action.UserAction" method="save">
+            <result name="success" type="redirect">/admin/user/index</result>
+        </action>
+    </package>
+    
+    <package name="role" namespace="/admin/role" extends="admin">          
+        <action name="index" class="com.sathish.action.RoleAction" method="index">
+            <result name="success">/WEB-INF/admin/role/index.jsp</result>
+        </action>
+        
+        <action name="insert" class="com.sathish.action.RoleAction" method="insert">
+            <interceptor-ref name="store">
+                <param name="operationMode">RETRIEVE</param>
+            </interceptor-ref>
+            <result name="success">/WEB-INF/admin/role/forms.jsp</result>
+        </action>
+        
+        <action name="delete" class="com.sathish.action.RoleAction" method="delete">
+            <result name="success" type="redirect">/admin/role/index</result>
+        </action>
+        
+        <action name="edit" class="com.sathish.action.RoleAction" method="edit">
+            <result name="success">/WEB-INF/admin/role/forms.jsp</result>
+        </action>
+        
+        <action name="save" class="com.sathish.action.RoleAction" method="save">
+            <interceptor-ref name="store">
+                <param name="operationMode">STORE</param>
+            </interceptor-ref>
+            <interceptor-ref name="roleStack" />
+            <result name="success" type="redirect">/admin/role/index</result>
+            <result name="input" type="redirect">/admin/role/insert.action</result>
+        </action>
+    </package>
+       
+    <package name="order" namespace="/admin/order" extends="admin">          
+        <action name="index" class="com.sathish.action.OrderAction" method="index">
+            <interceptor-ref name="store">
+                <param name="operationMode">RETRIEVE</param>
+            </interceptor-ref>
+            <result name="success">/WEB-INF/admin/order/index.jsp</result>
+        </action>
+        
+        <action name="delete" class="com.sathish.action.OrderAction" method="delete">
+             <interceptor-ref name="store">
+                <param name="operationMode">STORE</param>
+            </interceptor-ref>
+            <result name="success" type="redirect">/admin/order/index</result>
+            <result name="input" type="redirect">/admin/order/index</result>
+        </action>
+        
+        <action name="edit" class="com.sathish.action.OrderAction" method="edit">
+            <result name="success">/WEB-INF/admin/order/forms.jsp</result>
+        </action>
+        
+        <action name="save" class="com.sathish.action.OrderAction" method="save">
+            <interceptor-ref name="store">
+                <param name="operationMode">STORE</param>
+            </interceptor-ref>
+            <interceptor-ref name="roleStack" />
+            <result name="success" type="redirect">/admin/order/index</result>
+            <result name="input" type="redirect">/admin/order/insert.action</result>
+        </action>
+    </package>
+</struts>
